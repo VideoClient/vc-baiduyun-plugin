@@ -1,0 +1,19 @@
+{
+  "name": "vc-baiduyun-plugin",
+  "version": "0.1.0",
+  "description": "",
+  "main": "baiduyun.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "baidu",
+    "yun"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VideoClient/vc-baiduyun-plugin.git"
+  },
+  "author": "sxf",
+  "license": "MIT"
+}
