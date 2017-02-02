@@ -2,7 +2,7 @@
   "name": "vc-baiduyun-plugin",
   "version": "0.1.0",
   "description": "",
-  "main": "baiduyun.ts",
+  "main": "baiduyun.tsx",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
