@@ -1,6 +1,7 @@
 import request = require('request'); // 主项目中含有request库
 
-
+async function request_promise<TUriUrlOptions,TOptions extends request.CoreOptions>
+        (url: TUriUrlOptions & TOptions): Promise<any>
 async function request_promise(url: string): Promise<any> {
     return new Promise<any>((resolve, reject) => {
         request(url, (err, resp, data) => {
@@ -15,14 +16,25 @@ export class BaiduPCSClient {
     BAIDUPCS_SERVER = 'pcs.baidu.com'
     BAIDUPAN_HEADERS = {"Referer": "http://pan.baidu.com/disk/home",
                         "User-Agent": "netdisk;4.6.2.0;PC;PC-Windows;10.0.10240;WindowsBaiduYunGuanJia"}
-
-
+    api_template = `http://${this.BAIDUPAN_SERVER}/api/`      
+    pcs_template = `http://${this.BAIDUPCS_SERVER}/rest/2.0/pcs/`               
+    private cookieJar = request.jar();                    
     constructor() {
+        this.init()
     }
 
-    setUsertoken(BDUSS, token) {
+    async init() {
+        let fast_pcs = await this.get_fastest_pcs_server()
+        if (fast_pcs != null) this.BAIDUPCS_SERVER = fast_pcs
+    }
+
+    setUsertoken(BDUSS: string, token: string, cookies) {
         this.user.BDUSS = BDUSS
         this.user.token = token
+        for (let cookie of cookies) {
+            let nc = request.cookie(`${cookie.name}=${cookie.value};expires=${cookie.expirationDate};path=${cookie.path};`)
+            this.cookieJar.setCookie(nc, cookie.domain)
+        }
     }
 
     async get_fastest_pcs_server_test(): Promise<string> {
@@ -45,9 +57,8 @@ export class BaiduPCSClient {
                     }
                 }
                 if (minhost == null) reject('can not find host!')
-                console.log(minhost)
                 resolve(minhost)
-            })
+            }) 
         })
     }
 
@@ -55,35 +66,63 @@ export class BaiduPCSClient {
         let url = 'http://pcs.baidu.com/rest/2.0/pcs/file?app_id=250528&method=locateupload'
         let ret = JSON.parse(await request_promise(url))
         // console.log(ret)
-        console.log(ret.host)
         return ret.host
     }
 
     async user_info(): Promise<any> {
-        let url = 'https://pan.baidu.com/rest/2.0/membership/user'
-        let ret = await this.baidu_request('query', url)
+        let url = 'https://pan.baidu.com/rest/2.0/'
+        let ret = await this.baidu_request('membership/user','query', url)
         console.log(ret)
         return ret
     }
 
-    async baidu_request(method:string, url:string, data?:any, files?:any) {
+    async quota() {
+        let ret = await this.baidu_request('quota', 'info')
+        console.log(ret)
+        return ret
+    }
+
+    async get_token() {
+        await request_promise({url: 'http://www.baidu.com', jar: this.cookieJar})
+        let time = new Date().getTime()
+        let url = `https://passport.baidu.com/v2/api/?getapi&tpl=mn&apiver=v3&class=login&tt=${time}&logintype=dialogLogin&callback=0`
+        let data:string = await request_promise({url: url, jar: this.cookieJar})
+        data = data.replace(/'/g, '\"')
+        let ret = JSON.parse(data)
+        return ret['data']['token']
+    }
+
+
+    async baidu_request(uri:string, method:string, url?:string, data?:any, files?:any) {
         return new Promise<string>(async (resolve, reject) => {
             let params = {
                 'method': method,
                 'app_id': "250528",
+                // 'app_id': '266719',
+                'web': '1', 
                 'BDUSS': this.user['BDUSS'],
                 't': new Date().getTime(),
                 'bdstoken': this.user['token']
             }
+            url = this.api_template + uri
             for (let i in data) 
                 params[i] = data[i]
-            request.post(url, {headers: this.BAIDUPAN_HEADERS, form: params}, (err, resp, data) => {
-                if (!err && resp.statusCode == 200) {
-                    console.log(data)
-                    resolve(JSON.parse(data))
-                }
-                reject(resp)
-            })
+                if (uri == 'filemanager' || uri == 'rapidupload' || uri == 'filemetas' || uri == 'precreate')
+                    request.post(url, {headers: this.BAIDUPAN_HEADERS, form: params, jar: this.cookieJar}, (err, resp, data) => {
+                        console.log(resp)
+                        if (!err && resp.statusCode == 200) {
+                            resolve(JSON.parse(data))
+                        }
+                        reject(resp)
+                    })
+                else 
+                    request.get(url, {headers: this.BAIDUPAN_HEADERS, form: params, jar: this.cookieJar}, (err, resp, data) => {
+                        console.log(resp)
+                        if (!err && resp.statusCode == 200) {
+                            resolve(JSON.parse(data))
+                        }
+                        reject(resp)
+                    })
         })
     }
     private user:any = {}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Web版百度网盘</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+        webview {
+            margin: 0; 
+            padding: 0;
+            display:inline-flex;
+            width:1346px;
+            height:748px;
+        }
+        webview.hide {
+            margin: 0; 
+            padding: 0;
+            flex: 0 1;
+            width: 1346px;
+            height: 748px;
+        }
+        </style>
+    </head>
+    <body style='height: 100%'>
+        <webview id='wv' src='https://yun.baidu.com/'></webview>
+        <script>
+            var webview = document.getElementById('wv');
+            webview.addEventListener('dom-ready', () => {
+            })
+        </script>
+    </body>
+</html>
