@@ -4,7 +4,7 @@ const {Box, VBox, Page, Container, ScrollView} = require('react-layout-component
 const {remote} = require('electron')
 const BrowserWindow = remote.BrowserWindow
 import {BaiduPCSClient} from './baidupcs'
-import {App} from '../../app/ts/Model'
+import {App} from '../../ts/Model'
 
 export class BaiduyunPage extends React.Component<any, any> {
     private client = new BaiduPCSClient() 

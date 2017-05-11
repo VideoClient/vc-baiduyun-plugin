@@ -1,6 +1,6 @@
 import React = require('react')
-import {Video, VideoCollection} from '../../app/ts/Model/resource';
-import {ISearchAdapter} from '../../app/ts/Model/res-adapter';
+import {Video, VideoCollection} from '../../ts/Model/resource';
+import {ISearchAdapter} from '../../ts/Model/res-adapter';
 import {BaiduyunPage} from './BaiduyunPage'
 
 module.exports = vcapi => {
